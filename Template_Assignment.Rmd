@@ -92,7 +92,7 @@ The congress trading data contains 19 variables. This includes temporal and fina
 
 The congress trading data contained several duplicate entries. This inflated some variables, therefore we only kept distinct rows. We used the date of the transaction as the time variable in our calculations and plots, therefore, we had to convert the column entries from character objects to date objects to facilitate its use in grouping and plotting. For each transaction there is a trade size entry in USD. This entry is not a single numeric value but a range of possible trade sizes printed as a string of characters. We extract the numeric mean of the range boundaries to get an approximation of the trade size. We are only interested in the realised returns of Congress members, so we only keep "Sale" transactions, ignoring purchases and exchanges. We also eliminated rows that have missing transaction size entries or missing excess return entries.
 
-We converted S&P 500 historical Montlhy returns date column from character objects to date objects. The mo nth of October was not displayed properly in the data, showing up as 01 instead of 10 which caused inaccuracies in the plot, therefore, we made sure it was properly entered. We changed the SP500 column's name to "price", because its entries where the nominal price of the security for that month.
+We converted S&P 500 historical Montlhy returns date column from character objects to date objects. The month of October was not displayed properly in the data, showing up as 01 instead of 10 which caused inaccuracies in the plot, therefore, we made sure it was properly entered. We changed the SP500 column's name to "price", because its entries where the nominal price of the security for that month.
 
 We converted the S&P 500 historical annual returns date column to only years. For the sake of clarity we changed the column name of the "value" column that contains the values of the s&p 500 return for that year to "SP_500_return".
 
@@ -168,7 +168,7 @@ colnames(SP_500_annual_returns)[2] <- "SP_500_return"
 
 ## 3.2 Generate necessary variables
 
-To facilitate grouping we create a trade year column and a trade month column. New variables are need too produce a heat map showing what factor the weighted average net return of congress members does outperform or under-perform the return of the market for each US State.
+To facilitate grouping we create a trade year column and a trade month column. New variables are needed to produce a heat map plotting the percent factor by which the weighted average net return of congress members does outperform or under-perform the return of the market for each US State. 
 
 In a new data frame, we first calculate the weighted average excess return for all congress members from 2012 to 2024 grouped by state, by weighting each transaction's excess return with its transaction size, summing the weighted returns and then dividing them by the sum of all of the transaction sizes.
 
@@ -176,7 +176,7 @@ We then calculate the average market return from 2012 to 2024 by calculating the
 
 Finally to calculate how many times over the congress members' net return rate outperformed or under-performed the market rate we calculate the difference between the congress member's net rate and the market rate then divide it by the absolute value of the market rate for each state. To get the result as a percentage we multiply this ratio by 100.
 
-(If the congress rate is larger than the market rate we compute difference as ***\|net return - market return\|*** , otherwise we calculate the difference as ***-\|market return - net return\|*** )
+(If the congress rate is larger than the market rate we compute the difference as ***\|net return - market return\|***, otherwise we calculate the difference as ***-\|market return - net return\|*** )
 
 
 The weighted average excess return can also be calculated for each individual congress member. This can be used to separate the number of members who on average beat the market over the years *(weighted average excess return > 0)* from those who's trades  on average returned less than the market *(weighted average excess return < 0)*. To differentiate between the two groups, we create a categorical variable that assigns "Higher than market" to members with positive excess returns and "Lower than market" to members with negative or zero excess return. 
@@ -213,8 +213,6 @@ returns_by_state <- returns_by_state |>
                                          100*abs(net_return_magnitude - average_market_return_over_time)/abs(average_market_return_over_time)  ),
   )
 ```
-
-Calculate monthly return using price and dividend:
 
 ```{r gen_var6, include=FALSE}
 sp_500_monthly_full_data <- sp_500_monthly_full_data |>
