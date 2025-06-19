@@ -1,6 +1,6 @@
 ---
 title: "Insider Trading in the US Congress"
-author: "Dewin Erkamps 2739941, Alec van der Heijde 2852988, Berend Hol, Dagný Hlynsdóttir 2841038, Giovanni Boba 2766610, Joshua Azadi and Mark de Jongh 2865081"
+author: " 2739941, 2852988, 2869153, 2841038,2766610, Joshua Azadi and 2865081"
 date: "`r Sys.Date()`"
 output: pdf_document
 ---
@@ -17,7 +17,7 @@ install.packages("maps")
 
 ```
 
-```{r packages}
+```{r packages, include=FALSE}
 library(tidyverse)
 library(dplyr)
 library(stringr)
@@ -49,10 +49,11 @@ Public confidence in members of congress' ability to act in the best interests o
 
 ## 2.1 Load in the data
 
-```{r loading_data}
+```{r loading_data, echo=TRUE, message=FALSE, warning=FALSE}
 congresstrades <- read.csv("data/Copyofcongress-trading-all.csv")
 senators_full_data<-read.csv("data/Copyofcongress-trading-all.csv")
-SP_500_annual_returns <- read_csv("data/sp-500-historical-annual-returns.csv" , skip = 15) ##skip metadata
+SP_500_annual_returns <- read_csv("data/sp-500-historical-annual-returns.csv" , skip = 15)
+##skip metadata
 SP_500_annual_returns <- as.data.frame(SP_500_annual_returns) ##set data to class = dataframe
 sp_500_monthly_full_data <- read.csv("data/sp500_monthly.csv")
 ```
@@ -60,10 +61,9 @@ sp_500_monthly_full_data <- read.csv("data/sp500_monthly.csv")
 ## 2.2 Provide a short summary of the dataset(s)
 
 ```{r}
-head(senators_full_data)
-head(SP_500_annual_returns)
-head(sp_500_monthly_full_data)
-
+head(as_tibble( senators_full_data))
+head(as_tibble(SP_500_annual_returns))
+head(as_tibble(sp_500_monthly_full_data))
 ```
 
  The Standard and Poor 500 annual return is sourced from Macrotrends (2025) .The annual percentage change of the S&P 500 index back to 1927. Performance is calculated as the % change from the last trading day of each year from the last trading day of the previous year.
@@ -74,9 +74,9 @@ The Congress trading data cones from Quiver Quantitative (2025). It was cleaned 
 
 These are things that are usually included in the metadata of the data set. For your project, you need to provide us with the information from your metadata that we need to understand your data set of choice.
 
-Limitations of the Data sets:
+Limitations of the data sets:
 
-One major problem of the datasets used in this research is that its data entries are not standardized. For example, date fields are frequently saved as simple text rather than as organized date objects, which can lead to mistakes during data cleaning and make temporal analysis more difficult. The data sets also includes a lot of incomplete data lines, due to missing disclosures or incorrect filings. By distorting the representation of trading activity and possibly underestimating the timing or frequency of insider trades among Members of Congress, these inconsistencies may greatly affect the validity of the results. It is crucial to handle these data problems in order to guarantee the reliability of any insights gained from the analysis.
+One major problem of the data sets used in this research is that its data entries are not standardized. For example, date fields are frequently saved as simple text rather than as organized date objects, which can lead to mistakes during data cleaning and make temporal analysis more difficult. The data sets also includes a lot of incomplete data lines, due to missing disclosures or incorrect filings. By distorting the representation of trading activity and possibly underestimating the timing or frequency of insider trades among Members of Congress, these inconsistencies may greatly affect the validity of the results. It is crucial to handle these data problems in order to guarantee the reliability of any insights gained from the analysis.
 
 ## 2.3 Describe the type of variables included
 
@@ -93,20 +93,20 @@ This information is compiled from disclosures by congress members reuired by The
 
 Remove duplicate rows
 
-```{r data_cleaning}
+```{r include=FALSE}
 senators_full_data <- distinct(senators_full_data)
 ```
 
 Change date column from character objects to date objects
 
-```{r data_cleaning}
+```{r include=FALSE}
 senators_full_data <- senators_full_data|>
   mutate( Traded = as.Date(Traded, format = "%A, %B %d, %Y")) # character to date object
 ```
 
 Extract numeric mean of trade size range boundaries from character objects in Trade size column
 
-```{r data_cleaning}
+```{r include=FALSE}
 senators_full_data <- senators_full_data|>
   mutate( Trade_Size_USD = Trade_Size_USD |>
             str_extract_all( "\\$?\\d{1,3}(,\\d{3})*(\\.\\d+)?|\\$?\\d+(\\.\\d+)?"),
@@ -122,28 +122,28 @@ senators_full_data <- senators_full_data|>
 
 Keep only Sale transactions: only interested in realized returns of congress members
 
-```{r data_cleaning}
+```{r include=FALSE}
 senators_full_data <- senators_full_data |>
   filter(Transaction %in% c("Sale", "Sale (Full)"))
 ```
 
 Remove NA values of trans size and excess return from data
 
-```{r data_cleaning}
+```{r include=FALSE}
 senators_full_data <- senators_full_data |> 
   filter(!is.na(Trade_Size_USD), !is.na(excess_return))
 ```
 
 Change Date column from character to date object
 
-```{r data_cleaning}
+```{r include=FALSE}
 sp_500_monthly_full_data<- sp_500_monthly_full_data |>
   mutate(Date = as.Date(Date))
 ```
 
 Month of October is not displayed properly month = 01, instead of month = 10 modify that and change it
 
-```{r data_cleaning}
+```{r include=FALSE}
 
 position <- 10   # first October is in 10th row of the list
 while( position < 1833 ) {
@@ -156,19 +156,19 @@ while( position < 1833 ) {
 
 Change column name to something more intuitive
 
-```{r data_cleaning}
+```{r include=FALSE}
 colnames(sp_500_monthly_full_data)[2] <- "price"
 ```
 
 Formatting date column to only years (date column entries are class == date)
 
-```{r data_cleaning}
+```{r include=FALSE}
 SP_500_annual_returns[,"date"] <- format(SP_500_annual_returns[,"date"], "%Y")
 ```
 
 Changing value column name
 
-```{r data_cleaning}
+```{r include=FALSE}
 colnames(SP_500_annual_returns)[2] <- "SP_500_return"
 ```
 
@@ -176,7 +176,7 @@ colnames(SP_500_annual_returns)[2] <- "SP_500_return"
 
 Variable 1:
 
-```{r gen_var1}
+```{r gen_var1, include=FALSE}
 senators_full_data <- senators_full_data|>
   mutate(Trade_year = format(Traded, "%Y"), # new trade_year column
           Trade_month = floor_date(as.Date(Traded), unit = "month") )# add trade month column 
@@ -184,7 +184,7 @@ senators_full_data <- senators_full_data|>
 
 Calculate weighted average excess return by state over entire period:
 
-```{r gen_var2}
+```{r gen_var2, include=FALSE}
 returns_by_state <- senators_full_data |>
   group_by(State) |>
   summarize(weighted_average_return_per_state = sum(Trade_Size_USD*excess_return, na.rm = T)/sum(Trade_Size_USD, na.rm = T ), .groups = "drop")
@@ -192,13 +192,13 @@ returns_by_state <- senators_full_data |>
 
 Calculate average S&P 500 return over entire period from annual historical data:
 
-```{r gen_var3}
+```{r gen_var3, include=FALSE}
 average_market_return_over_time <- mean(SP_500_annual_returns$SP_500_return[85:98])
 ```
 
 Calculate net return size per state:
 
-```{r gen_var4}
+```{r gen_var4, include=FALSE}
 returns_by_state <- returns_by_state |>
   mutate(net_return_magnitude = weighted_average_return_per_state + average_market_return_over_time
   )
@@ -206,7 +206,7 @@ returns_by_state <- returns_by_state |>
 
 Calculate net return out-performance(under-performance) percentage:
 
-```{r gen_var5}
+```{r gen_var5, include=FALSE}
 returns_by_state <- returns_by_state |>
   mutate(state_net_return_percentage = ifelse(average_market_return_over_time > net_return_magnitude,
                                          -100*abs(average_market_return_over_time - net_return_magnitude)/abs(average_market_return_over_time),
@@ -216,7 +216,7 @@ returns_by_state <- returns_by_state |>
 
 Calculate monthly return using price and dividend:
 
-```{r gen_var6}
+```{r gen_var6, include=FALSE}
 sp_500_monthly_full_data <- sp_500_monthly_full_data |>
   mutate(price_prior_month = lag(price),
          sp_500_monthly_return = 100*((price + Dividend - price_prior_month )/price_prior_month ) )
@@ -224,7 +224,7 @@ sp_500_monthly_full_data <- sp_500_monthly_full_data |>
 
 Calculate weighted average excess return for each individual congress member:
 
-```{r gen_var7}
+```{r gen_var7, include=FALSE}
 senators_subpop_positive_excess_returns <- senators_full_data |>
   group_by(Name) |>
   summarize(weighted_avg_excess_return = sum(Trade_Size_USD*excess_return, na.rm = T)/sum(Trade_Size_USD, na.rm = T ), .groups = "drop" )
@@ -232,7 +232,7 @@ senators_subpop_positive_excess_returns <- senators_full_data |>
 
 Add a Group column (categorical variable) to group congress members into positive and negative excess return groups:
 
-```{r gen_var8}
+```{r gen_var8, include=FALSE}
 senators_subpop_positive_excess_returns <- senators_subpop_positive_excess_returns |>
   mutate(Group = ifelse (weighted_avg_excess_return > 0, "Higher than market ", "Lower than market"))
 ```
@@ -241,58 +241,40 @@ senators_subpop_positive_excess_returns <- senators_subpop_positive_excess_retur
 
 This plots the congress members' monthly weighted average excess return (net return - risk free return) and the market's risk free monthly return rate (S&P 500 return rate) from 2012 to 2024
 
-```{r}
-########################################
-##########     temporal plot          ##
-########################################
+```{r echo=FALSE}
 ## create dataframe with only date and return, remove excess columns
-
-sp_500_monthly_returns <- subset(sp_500_monthly_full_data, select = c(Date, sp_500_monthly_return))
+sp_500_monthly_returns <- subset(sp_500_monthly_full_data, select = 
+                                   c(Date, sp_500_monthly_return))
 
 ## make sure date column is date object
-
 sp_500_monthly_returns <- sp_500_monthly_returns |>
   mutate(Date =as.Date(Date))
 
 ## fill missing market return data using interpolation (avoid gaps in line plot)
-
 library(zoo)
 
-sp_500_monthly_returns$sp_500_monthly_return <- na.approx(sp_500_monthly_returns$sp_500_monthly_return, na.rm = FALSE)
-
-#############################################################################################################
+sp_500_monthly_returns$sp_500_monthly_return <- 
+  na.approx(sp_500_monthly_returns$sp_500_monthly_return, na.rm = FALSE)
+##################################################################################
 ################## get average senator return per month 
-
 ### add trade month column to senators full data
-
 library(lubridate)
 
 senators_full_data <- senators_full_data |>
   mutate(Trade_month = floor_date(as.Date(Traded), unit = "month"))
 
 ## create new data frame with weighted average return per month for entire senate
-
 senators_weighted_average_excess_returns_monthly <- senators_full_data |> 
   group_by(Trade_month) |>
   summarize(total_weight = sum(Trade_Size_USD, na.rm = TRUE),
-            weighted_average_excess_return_monthly = sum(Trade_Size_USD*excess_return, na.rm = T)/sum(Trade_Size_USD, na.rm = T ), .groups = "drop" )
+            weighted_average_excess_return_monthly = 
+              sum(Trade_Size_USD*excess_return, na.rm = T)/sum(Trade_Size_USD, na.rm = T ), 
+            .groups = "drop" )
 
 ## merge datasets 
-
-senators_weighted_average_excess_returns_monthly <- senators_weighted_average_excess_returns_monthly |>
+senators_weighted_average_excess_returns_monthly <- 
+  senators_weighted_average_excess_returns_monthly |>
   left_join(sp_500_monthly_returns, by = c("Trade_month" = "Date"))
-
-##############################################################
-# reshape data frame to plot two lines in ggplot() geomline()
-##### get something like:
-###
-##   01-01-2012    return 1    sp500
-##   01-01-2012    return a    senators
-##   01-02-2012    return 2    sp500
-##   01-02-2012    return b    senators
-##     ...           ...        ...
-##########################################
-## use function pivot_longer
 
 library(tidyr)
 
@@ -302,9 +284,8 @@ reshaped_monthly_returns <- senators_weighted_average_excess_returns_monthly |>
     values_to = "Return",
     names_to = "Series"
   )
-############################################################################################################
+####################################################################
 # create line plot 
-
 library(ggplot2)
 
 reshaped_monthly_returns |>
@@ -321,7 +302,10 @@ reshaped_monthly_returns |>
     axis.text.x = element_text(angle = 45, hjust = 1) ) + 
   
   scale_color_discrete(name = "Monthly returns on investment\n",
-                       labels = c("sp_500_monthly_return" = "S&P 500\n(risk free return rate)\n" , "weighted_average_excess_return_monthly" = "\nUS Congress\n\n(net return - risk free retrun rate)")) + 
+                       labels = c("sp_500_monthly_return" = 
+                                    "S&P 500\n(risk free return rate)\n" ,
+                                  "weighted_average_excess_return_monthly" = 
+                                    "\nUS Congress\n\n(net return - risk free retrun rate)")) + 
   geom_vline(xintercept = as.Date("2020-03-01"), 
              linetype = "dashed",
              color = "black", 
@@ -341,7 +325,7 @@ This shows how the return of congress members' trades react to changes in the ma
 
 ## 3.4 Visualize spatial variation
 
-```{r visualise_map}
+```{r visualise_map, message=FALSE, warning=FALSE}
 
 us_states <- map_data("state")
 congresstrades$state_lower <- tolower(congresstrades$State)
@@ -367,19 +351,15 @@ This graph is useful for a study on insider trading in the U.S. since it clearly
 -   Outliers, like New Jersey, which has an abnormally high trading activity but a relatively small number of representatives, may point to people or groups that should be looked at more closely. However, this will take a more comprehensive and complicated study.
 -   Comparative analysis across states can show whether insider trading is more common in areas with more representation, economic clout, or regulatory laxity.
 
-```{r map_visualisation_2}
+```{r map_visualisation_2, message=FALSE, warning=FALSE}
 ####################################################
 ## Map of net return excess percentage per state for all years 2012 --> 2024
 #####################################################
-
 ### remove alaska and hawaii
-
 returns_by_state <- returns_by_state |>
   filter(!(State %in% c("Alaska", "Hawaii")))
 
 ####### install shapefile pacakges to get US states Map
-
-
 devtools::install_github("ropensci/rnaturalearthhires")
 
 library(rnaturalearth)
@@ -389,12 +369,10 @@ us_states_map = ne_states(country ="united states of america", returnclass = "sf
 
 ################## create heatmap
 # merge map and returns per state data
-
 us_states_returns_map <- us_states_map |>
   inner_join(returns_by_state, by = c("name" = "State"))
 
 #plot merged data
-
 ggplot(us_states_returns_map, aes(fill = state_net_return_percentage)) +
   geom_sf( color = "black", size = 0.2 ) +
   
@@ -409,19 +387,16 @@ Grouping the congress members by state then calculating how many times over each
 
 What is the number of congress members that beat the market from 2012 to 2024?
 
-```{r visualise_subpopulations}
+```{r visualise_subpopulations, fig.height=3.5, fig.width=3.5}
 
 ## Plot the number of congress members in each group
 ggplot(senators_subpop_positive_excess_returns, aes(x = Group)
                                        ) +
-  
   geom_bar(fill ="blue",
            width = 0.3,) +
-  
   labs(x = "Congress members divided by excess return",
        y = "Number of members",
        title = "Subpopulation by return groups")
-
 ```
 
 Plotting the number of congress members with higher return rates than the market and comparing it to the number of congress members with return rates lower than that of the market helps us understand whether the majority of is capable of achieving abnormal returns through insider trading. If there is a large proportion of congress members with positive excess returns that could hint at the presence of widespread access to insider information.
@@ -429,9 +404,8 @@ Plotting the number of congress members with higher return rates than the market
 ## 3.6 Event analysis
 
 
-```{r analysis}
+```{r analysis, warning=FALSE}
 ########################## covid 19 Zoom in line plot
-
 reshaped_monthly_returns[165:206,] |>
   filter(!is.na(Return)) |> #remove NA returns
   ggplot( aes(x=Trade_month , y=Return, group=Series, color=Series)) +
@@ -445,7 +419,9 @@ reshaped_monthly_returns[165:206,] |>
     axis.text.x = element_text(angle = 45, hjust = 1) ) + 
   
   scale_color_discrete(name = "Monthly returns on investment\n",
-                       labels = c("sp_500_monthly_return" = "S&P 500\n(risk free return rate)\n" , "weighted_average_excess_return_monthly" = "\nUS Congress\n\n(net return - risk free retrun rate)")) + 
+                       labels = c("sp_500_monthly_return" = "S&P 500\n(risk free return rate)\n" , 
+                                  "weighted_average_excess_return_monthly" = 
+                                    "\nUS Congress\n\n(net return - risk free retrun rate)")) + 
   geom_vline(xintercept = as.Date("2020-03-01"), 
              linetype = "dashed",
              color = "black", 
@@ -459,7 +435,6 @@ reshaped_monthly_returns[165:206,] |>
            angle = 0, 
            size = 3.5,
            color = "black")
-#
 ```
 
 This plot focuses on a time interval surrounding the Covid 19 pandemic event. It is characterized by a local minimum in the market return rate. If congress members had prior knowledge of legislation and how it would affect the market leaing up to the Covid 19 pandemic event, we would observe an upward trend in the returns on investments made by congress members. 
@@ -487,9 +462,16 @@ Congressional Stock Trading and the STOCK Act. (n.d.). Campaign Legal Center. ht
 
 Himes, J. A. (2021, May 19). Text - H.R.2655 - 117th Congress (2021-2022): Insider Trading Prohibition Act. Www.congress.gov. https://www.congress.gov/bill/117th-congress/house-bill/2655/text
 
-Shiller, R.  (2005). Online Data: US Stock Markets 1871-Present and CAPE Ratio [Dataset] http://www.econ.yale.edu/~shiller/data.htm
+Data set References:
 
 Macrotrends. (z.d.). S&P 500 Historical Annual Returns [Dataset]. https://www.macrotrends.net/2526/sp-500-historical-annual-returns
+
+Shiller, R.  (2005). Online Data: US Stock Markets 1871-Present and CAPE Ratio [Dataset] http://www.econ.yale.edu/~shiller/data.htm
+
+Shiller R. (2024). Standard and Poor's (S&P) 500 Index Data including Dividend, Earnings and P/E Ratio [Dataset]. DATA HUB. 
+https://datahub.io/core/s-and-p-500
+
+Quiver Quantitative (2025). Congress Trading [Dataset] https://www.quiverquant.com/congresstrading/
 
 Shabba Rank. (2023). Congressional Trading (Inception to March 23) [Dataset]. Kaggle. https://www.kaggle.com/datasets/shabbarank/congressional-trading-inception-to-march-23?select=Copy+of+congress-trading-all+%283%29.csv
 
