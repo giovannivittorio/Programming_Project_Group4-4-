@@ -1,6 +1,6 @@
 ---
 title: "Insider Trading in the US Congress"
-author: " 2739941, 2852988, 2869153, 2841038,2766610, Joshua Azadi and 2865081"
+author: " 2739941, 2852988, 2869153, 2841038,2766610, 2791195 and 2865081"
 date: "`r Sys.Date()`"
 output: pdf_document
 ---
@@ -66,7 +66,7 @@ head(as_tibble(SP_500_annual_returns))
 head(as_tibble(sp_500_monthly_full_data))
 ```
 
- The Standard and Poor 500 annual return is sourced from Macrotrends (2025) .The annual percentage change of the S&P 500 index back to 1927. Performance is calculated as the % change from the last trading day of each year from the last trading day of the previous year.
+The Standard and Poor 500 annual return is sourced from Macrotrends (2025) .The annual percentage change of the S&P 500 index back to 1927. Performance is calculated as the % change from the last trading day of each year from the last trading day of the previous year.
 
 The Standard and Poor 500 monthly return was originally compiled by Shiller (2005) and later cleaned and put into a .csv available to download on DataHub. Monthly dividend and earnings data are computed from the S&P four-quarter totals for the quarter since 1926, with linear interpolation to monthly figures. Dividend and earnings data before 1926 are from Cowles and associates, interpolated from annual data. Stock price data are monthly averages of daily closing prices through January 2000, the last month available as this book goes to press. The CPI-U (Consumer Price Index-All Urban Consumers) published by the U.S. Bureau of Labor Statistics begins in 1913; for years before 1913 1 spliced to the CPI Warren and Pearson's price index, by multiplying it by the ratio of the indexes in January 1913. December 1999 and January 2000 values for the CPI-U are extrapolated.
 
@@ -84,29 +84,31 @@ The S&P 500 annual data contains two variables: a date variable as a character o
 
 The S&P 500 monthly data contains 10 variables. This includes date values and for each month the corresponding nominal and real prices, dividends and earnings, as well as Consumer price Index , PE10 and long interest rate.
 
-The congress trading data contains 19 variables. This includes temporal and financial dat for individual trades made by congress members. Relevant variables for our analysis are the trade date, the congress members' names, the trade size, the transaction type, the excess return, political party, and the transaction type. These variables are character objects or numerics.
-This information is compiled from disclosures by congress members reuired by The US government under The Stock Trading on Congressional Knowledge Act.
+The congress trading data contains 19 variables. This includes temporal and financial dat for individual trades made by congress members. Relevant variables for our analysis are the trade date, the congress members' names, the trade size, the transaction type, the excess return, political party, and the transaction type. These variables are character objects or numerics. This information is compiled from disclosures by congress members required by The US government under The Stock Trading on Congressional Knowledge Act.
 
 # Part 3 - Quantifying
 
 ## 3.1 Data cleaning
 
-Remove duplicate rows
+The congress trading data contained several duplicate entries. This inflated some variables, therefore we only kept distinct rows. We used the date of the transaction as the time variable in our calculations and plots, therefore, we had to convert the column entries from character objects to date objects to facilitate its use in grouping and plotting. For each transaction there is a trade size entry in USD. This entry is not a single numeric value but a range of possible trade sizes printed as a string of characters. We extract the numeric mean of the range boundaries to get an approximation of the trade size. We are only interested in the realised returns of Congress members, so we only keep "Sale" transactions, ignoring purchases and exchanges. We also eliminated rows that have missing transaction size entries or missing excess return entries.
+
+We converted S&P 500 historical Montlhy returns date column from character objects to date objects. The mo nth of October was not displayed properly in the data, showing up as 01 instead of 10 which caused inaccuracies in the plot, therefore, we made sure it was properly entered. We changed the SP500 column's name to "price", because its entries where the nominal price of the security for that month.
+
+We converted the S&P 500 historical annual returns date column to only years. For the sake of clarity we changed the column name of the "value" column that contains the values of the s&p 500 return for that year to "SP_500_return".
 
 ```{r include=FALSE}
+#Remove duplicate rows
 senators_full_data <- distinct(senators_full_data)
 ```
 
-Change date column from character objects to date objects
-
 ```{r include=FALSE}
+#Change date column from character objects to date objects
 senators_full_data <- senators_full_data|>
   mutate( Traded = as.Date(Traded, format = "%A, %B %d, %Y")) # character to date object
 ```
 
-Extract numeric mean of trade size range boundaries from character objects in Trade size column
-
 ```{r include=FALSE}
+#Extract numeric mean of trade size range boundaries from character objects in Trade size column
 senators_full_data <- senators_full_data|>
   mutate( Trade_Size_USD = Trade_Size_USD |>
             str_extract_all( "\\$?\\d{1,3}(,\\d{3})*(\\.\\d+)?|\\$?\\d+(\\.\\d+)?"),
@@ -120,31 +122,26 @@ senators_full_data <- senators_full_data|>
   ) 
 ```
 
-Keep only Sale transactions: only interested in realized returns of congress members
-
 ```{r include=FALSE}
+#Keep only Sale transactions: only interested in realized returns of congress members
 senators_full_data <- senators_full_data |>
   filter(Transaction %in% c("Sale", "Sale (Full)"))
 ```
 
-Remove NA values of trans size and excess return from data
-
 ```{r include=FALSE}
+#Remove NA values of trans size and excess return from data
 senators_full_data <- senators_full_data |> 
   filter(!is.na(Trade_Size_USD), !is.na(excess_return))
 ```
 
-Change Date column from character to date object
-
 ```{r include=FALSE}
+#Change Date column from character to date object
 sp_500_monthly_full_data<- sp_500_monthly_full_data |>
   mutate(Date = as.Date(Date))
 ```
 
-Month of October is not displayed properly month = 01, instead of month = 10 modify that and change it
-
 ```{r include=FALSE}
-
+#Month of October is not displayed properly month = 01, instead of month = 10 modify that and change it
 position <- 10   # first October is in 10th row of the list
 while( position < 1833 ) {
   temporary_date <- sp_500_monthly_full_data$Date[position]  
@@ -154,57 +151,60 @@ while( position < 1833 ) {
 }
 ```
 
-Change column name to something more intuitive
-
 ```{r include=FALSE}
+#Change column name to something more intuitive
 colnames(sp_500_monthly_full_data)[2] <- "price"
 ```
 
-Formatting date column to only years (date column entries are class == date)
-
 ```{r include=FALSE}
+#Formatting date column to only years (date column entries are class == date)
 SP_500_annual_returns[,"date"] <- format(SP_500_annual_returns[,"date"], "%Y")
 ```
 
-Changing value column name
-
 ```{r include=FALSE}
+#Changing value column name
 colnames(SP_500_annual_returns)[2] <- "SP_500_return"
 ```
 
 ## 3.2 Generate necessary variables
 
-Variable 1:
+To facilitate grouping we create a trade year column and a trade month column. New variables are need too produce a heat map showing what factor the weighted average net return of congress members does outperform or under-perform the return of the market for each US State.
 
+In a new data frame, we first calculate the weighted average excess return for all congress members from 2012 to 2024 grouped by state, by weighting each transaction's excess return with its transaction size, summing the weighted returns and then dividing them by the sum of all of the transaction sizes.
+
+We then calculate the average market return from 2012 to 2024 by calculating the mean of the S&P 500 return values for these years. To get the weighted average net return for congress members per state we sum the S&P average return to the weighted average excess return for each state.
+
+Finally to calculate how many times over the congress members' net return rate outperformed or under-performed the market rate we calculate the difference between the congress member's net rate and the market rate then divide it by the absolute value of the market rate for each state. To get the result as a percentage we multiply this ratio by 100.
+
+(If the congress rate is larger than the market rate we compute difference as ***\|net return - market return\|*** , otherwise we calculate the difference as ***-\|market return - net return\|*** )
+
+
+The weighted average excess return can also be calculated for each individual congress member. This can be used to separate the number of members who on average beat the market over the years *(weighted average excess return > 0)* from those who's trades  on average returned less than the market *(weighted average excess return < 0)*. To differentiate between the two groups, we create a categorical variable that assigns "Higher than market" to members with positive excess returns and "Lower than market" to members with negative or zero excess return. 
+
+To get the market rate with a montlhy granularity for the tempral visulaization we have to calculate the montlhy market return rate. the return is equal to the price of the risk free security at the current period plus the dividend paid out minus the price of the seeurity during the previous period all of which we divide by the price of the security during the previous period. We create this new variable in the S&P 500 monthly data set.
 ```{r gen_var1, include=FALSE}
+#Add trade year column and trade month column to make grouping easier
 senators_full_data <- senators_full_data|>
   mutate(Trade_year = format(Traded, "%Y"), # new trade_year column
           Trade_month = floor_date(as.Date(Traded), unit = "month") )# add trade month column 
 ```
 
-Calculate weighted average excess return by state over entire period:
-
 ```{r gen_var2, include=FALSE}
+#Calculate weighted average excess return by state over entire period:
 returns_by_state <- senators_full_data |>
   group_by(State) |>
   summarize(weighted_average_return_per_state = sum(Trade_Size_USD*excess_return, na.rm = T)/sum(Trade_Size_USD, na.rm = T ), .groups = "drop")
 ```
 
-Calculate average S&P 500 return over entire period from annual historical data:
-
 ```{r gen_var3, include=FALSE}
 average_market_return_over_time <- mean(SP_500_annual_returns$SP_500_return[85:98])
 ```
-
-Calculate net return size per state:
 
 ```{r gen_var4, include=FALSE}
 returns_by_state <- returns_by_state |>
   mutate(net_return_magnitude = weighted_average_return_per_state + average_market_return_over_time
   )
 ```
-
-Calculate net return out-performance(under-performance) percentage:
 
 ```{r gen_var5, include=FALSE}
 returns_by_state <- returns_by_state |>
@@ -222,15 +222,11 @@ sp_500_monthly_full_data <- sp_500_monthly_full_data |>
          sp_500_monthly_return = 100*((price + Dividend - price_prior_month )/price_prior_month ) )
 ```
 
-Calculate weighted average excess return for each individual congress member:
-
 ```{r gen_var7, include=FALSE}
 senators_subpop_positive_excess_returns <- senators_full_data |>
   group_by(Name) |>
   summarize(weighted_avg_excess_return = sum(Trade_Size_USD*excess_return, na.rm = T)/sum(Trade_Size_USD, na.rm = T ), .groups = "drop" )
 ```
-
-Add a Group column (categorical variable) to group congress members into positive and negative excess return groups:
 
 ```{r gen_var8, include=FALSE}
 senators_subpop_positive_excess_returns <- senators_subpop_positive_excess_returns |>
@@ -403,7 +399,6 @@ Plotting the number of congress members with higher return rates than the market
 
 ## 3.6 Event analysis
 
-
 ```{r analysis, warning=FALSE}
 ########################## covid 19 Zoom in line plot
 reshaped_monthly_returns[165:206,] |>
@@ -437,8 +432,7 @@ reshaped_monthly_returns[165:206,] |>
            color = "black")
 ```
 
-This plot focuses on a time interval surrounding the Covid 19 pandemic event. It is characterized by a local minimum in the market return rate. If congress members had prior knowledge of legislation and how it would affect the market leaing up to the Covid 19 pandemic event, we would observe an upward trend in the returns on investments made by congress members. 
-
+This plot focuses on a time interval surrounding the Covid 19 pandemic event. It is characterized by a local minimum in the market return rate. If congress members had prior knowledge of legislation and how it would affect the market leaing up to the Covid 19 pandemic event, we would observe an upward trend in the returns on investments made by congress members.
 
 # Part 4 - Discussion
 
@@ -450,28 +444,26 @@ Our investigation into potential insider trading among U.S. Congress members aim
 
 ## 5.1 Github repository link
 
-https://github.com/giovannivittorio/Programming_Project_Group4-4-
+<https://github.com/giovannivittorio/Programming_Project_Group4-4->
 
 ## 5.2 Reference list
 
-Abdurakhmonov, M., Snider, R. E., Ridge, J. W., & Hasija, D. (2022). Perceptions of political Self‐Dealing ? An empirical investigation of market returns surrounding the disclosure of politician stock purchases. Strategic Management Journal. https://sms.onlinelibrary.wiley.com/doi/10.1002/smj.3459
+Abdurakhmonov, M., Snider, R. E., Ridge, J. W., & Hasija, D. (2022). Perceptions of political Self‐Dealing ? An empirical investigation of market returns surrounding the disclosure of politician stock purchases. Strategic Management Journal. <https://sms.onlinelibrary.wiley.com/doi/10.1002/smj.3459>
 
-Almeida, L. (2025, April 10). Trump ignites “insider trading” accusations after global tariffs U-turn. The Guardian; The Guardian. https://www.theguardian.com/us-news/2025/apr/10/donald-trump-ignites-insider-trading-accusations-after-global-tariffs-u-turn
+Almeida, L. (2025, April 10). Trump ignites “insider trading” accusations after global tariffs U-turn. The Guardian; The Guardian. <https://www.theguardian.com/us-news/2025/apr/10/donald-trump-ignites-insider-trading-accusations-after-global-tariffs-u-turn>
 
-Congressional Stock Trading and the STOCK Act. (n.d.). Campaign Legal Center. https://campaignlegal.org/update/congressional-stock-trading-and-stock-act 
+Congressional Stock Trading and the STOCK Act. (n.d.). Campaign Legal Center. <https://campaignlegal.org/update/congressional-stock-trading-and-stock-act>
 
-Himes, J. A. (2021, May 19). Text - H.R.2655 - 117th Congress (2021-2022): Insider Trading Prohibition Act. Www.congress.gov. https://www.congress.gov/bill/117th-congress/house-bill/2655/text
+Himes, J. A. (2021, May 19). Text - H.R.2655 - 117th Congress (2021-2022): Insider Trading Prohibition Act. Www.congress.gov. <https://www.congress.gov/bill/117th-congress/house-bill/2655/text>
 
 Data set References:
 
-Macrotrends. (z.d.). S&P 500 Historical Annual Returns [Dataset]. https://www.macrotrends.net/2526/sp-500-historical-annual-returns
+Macrotrends. (z.d.). S&P 500 Historical Annual Returns [Dataset]. <https://www.macrotrends.net/2526/sp-500-historical-annual-returns>
 
-Shiller, R.  (2005). Online Data: US Stock Markets 1871-Present and CAPE Ratio [Dataset] http://www.econ.yale.edu/~shiller/data.htm
+Shiller, R. (2005). Online Data: US Stock Markets 1871-Present and CAPE Ratio [Dataset] <http://www.econ.yale.edu/~shiller/data.htm>
 
-Shiller R. (2024). Standard and Poor's (S&P) 500 Index Data including Dividend, Earnings and P/E Ratio [Dataset]. DATA HUB. 
-https://datahub.io/core/s-and-p-500
+Shiller R. (2024). Standard and Poor's (S&P) 500 Index Data including Dividend, Earnings and P/E Ratio [Dataset]. DATA HUB. <https://datahub.io/core/s-and-p-500>
 
-Quiver Quantitative (2025). Congress Trading [Dataset] https://www.quiverquant.com/congresstrading/
+Quiver Quantitative (2025). Congress Trading [Dataset] <https://www.quiverquant.com/congresstrading/>
 
-Shabba Rank. (2023). Congressional Trading (Inception to March 23) [Dataset]. Kaggle. https://www.kaggle.com/datasets/shabbarank/congressional-trading-inception-to-march-23?select=Copy+of+congress-trading-all+%283%29.csv
-
+Shabba Rank. (2023). Congressional Trading (Inception to March 23) [Dataset]. Kaggle. <https://www.kaggle.com/datasets/shabbarank/congressional-trading-inception-to-march-23?select=Copy+of+congress-trading-all+%283%29.csv>
