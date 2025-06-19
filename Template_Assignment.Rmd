@@ -84,26 +84,29 @@ The S&P 500 annual data contains two variables: a date variable as a character o
 
 The S&P 500 monthly data contains 10 variables. This includes date values and for each month the corresponding nominal and real prices, dividends and earnings, as well as Consumer price Index , PE10 and long interest rate.
 
+The congress trading data contains 19 variables. This includes temporal and financial dat for individual trades made by congress members. Relevant variables for our analysis are the trade date, the congress members' names, the trade size, the transaction type, the excess return, political party, and the transaction type. These variables are character objects or numerics.
+This information is compiled from disclosures by congress members reuired by The US government under The Stock Trading on Congressional Knowledge Act.
+
 # Part 3 - Quantifying
 
 ## 3.1 Data cleaning
 
 Remove duplicate rows
 
-```{r data cleaning}
+```{r data_cleaning}
 senators_full_data <- distinct(senators_full_data)
 ```
 
 Change date column from character objects to date objects
 
-```{r data cleaning}
+```{r data_cleaning}
 senators_full_data <- senators_full_data|>
   mutate( Traded = as.Date(Traded, format = "%A, %B %d, %Y")) # character to date object
 ```
 
 Extract numeric mean of trade size range boundaries from character objects in Trade size column
 
-```{r data cleaning}
+```{r data_cleaning}
 senators_full_data <- senators_full_data|>
   mutate( Trade_Size_USD = Trade_Size_USD |>
             str_extract_all( "\\$?\\d{1,3}(,\\d{3})*(\\.\\d+)?|\\$?\\d+(\\.\\d+)?"),
@@ -119,28 +122,28 @@ senators_full_data <- senators_full_data|>
 
 Keep only Sale transactions: only interested in realized returns of congress members
 
-```{r data cleaning}
+```{r data_cleaning}
 senators_full_data <- senators_full_data |>
   filter(Transaction %in% c("Sale", "Sale (Full)"))
 ```
 
 Remove NA values of trans size and excess return from data
 
-```{r data cleaning}
+```{r data_cleaning}
 senators_full_data <- senators_full_data |> 
   filter(!is.na(Trade_Size_USD), !is.na(excess_return))
 ```
 
 Change Date column from character to date object
 
-```{r data cleaning}
+```{r data_cleaning}
 sp_500_monthly_full_data<- sp_500_monthly_full_data |>
   mutate(Date = as.Date(Date))
 ```
 
 Month of October is not displayed properly month = 01, instead of month = 10 modify that and change it
 
-```{r data cleaning}
+```{r data_cleaning}
 
 position <- 10   # first October is in 10th row of the list
 while( position < 1833 ) {
@@ -153,19 +156,19 @@ while( position < 1833 ) {
 
 Change column name to something more intuitive
 
-```{r data cleaning}
+```{r data_cleaning}
 colnames(sp_500_monthly_full_data)[2] <- "price"
 ```
 
 Formatting date column to only years (date column entries are class == date)
 
-```{r data cleaning}
+```{r data_cleaning}
 SP_500_annual_returns[,"date"] <- format(SP_500_annual_returns[,"date"], "%Y")
 ```
 
 Changing value column name
 
-```{r data cleaning}
+```{r data_cleaning}
 colnames(SP_500_annual_returns)[2] <- "SP_500_return"
 ```
 
@@ -364,7 +367,7 @@ This graph is useful for a study on insider trading in the U.S. since it clearly
 -   Outliers, like New Jersey, which has an abnormally high trading activity but a relatively small number of representatives, may point to people or groups that should be looked at more closely. However, this will take a more comprehensive and complicated study.
 -   Comparative analysis across states can show whether insider trading is more common in areas with more representation, economic clout, or regulatory laxity.
 
-```{r map visualisation 2}
+```{r map_visualisation_2}
 ####################################################
 ## Map of net return excess percentage per state for all years 2012 --> 2024
 #####################################################
