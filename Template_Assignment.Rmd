@@ -1,6 +1,6 @@
 ---
 title: "Insider Trading in the US Congress"
-author: "Dewin Erkamps 2739941, Alec van der Heijde 2852988, Berend Hol, Dagný Hlynsdóttir 2841038, Giovanni Boba, Joshua Azadi and Mark de Jongh 2865081"
+author: "Dewin Erkamps 2739941, Alec van der Heijde 2852988, Berend Hol, Dagný Hlynsdóttir 2841038, Giovanni Boba 2766610, Joshua Azadi and Mark de Jongh 2865081"
 date: "`r Sys.Date()`"
 output: pdf_document
 ---
@@ -41,8 +41,6 @@ C. Schouwenaar (Chantal)
 
 # Part 1 - Identify a Social Problem
 
-Use APA referencing throughout your document. [Here's a link to some explanation.](https://www.mendeley.com/guides/apa-citation-guide/)
-
 ## 1.1 Describe the Social Problem
 
 Public confidence in members of congress' ability to act in the best interests of the country, uninfluenced by personal financial incentives, is essential to maintaining the integrity of democratic institutions. However, recent studies have brought up worries about possible conflicts of interest resulting from American congress members' stock market dealings. A significant study published by Abdurakhmonov et al. discovered that U.S. senators' stock purchases frequently resulted in abnormal positive returns, especially when the senators had jurisdiction over the companies through committee assignments or when the companies had made political connections, such as through lobbying or political donations (Abdurakhmonov et al., 2022). The Stop Trading on Congressional Knowledge (STOCK) Act of 2012 sought to address insider trading by forcing members of Congress to make prompt financial transaction disclosures, but enforcement has been difficult. For example, in the beginning of the COVID-19 pandemic in 2020, a number of senators came under fire for stock market activity that occurred after they had received classified briefings. The current regulatory system may have flaws, as evidenced by the fact that no charges have been brought despite the start of the current framework (Campaign Legal Center, n.d.). In response, legislative attempts have continued to these persistent concerns. By expressly defining and prohibiting such behavior, the Insider Trading Prohibition Act (H.R. 2655), which the House approved in 2021, seeks to strengthen prohibitions against trading on material, nonpublic information. The goal of this programming project is to evaluate publicly accessible financial disclosure data in order to find patterns that might point to insider trading by members of congress. By developing tools that analyze congressional financial disclosures and highlight possible illegal transactions, this programming project seeks to help correct that disparity. This initiative aims to increase the transparency of these financial activities by employing data science and programming methods to link transactions to market happenings, legislative changes, and committee assignments.
@@ -68,11 +66,11 @@ head(sp_500_monthly_full_data)
 
 ```
 
-(Describe Source) The Standard and Poor 500 annual return is sourced from Macrotrends (<https://www.macrotrends.net/2526/sp-500-historical-annual-returns>).The annual percentage change of the S&P 500 index back to 1927. Performance is calculated as the % change from the last trading day of each year from the last trading day of the previous year.
+ The Standard and Poor 500 annual return is sourced from Macrotrends (2025) .The annual percentage change of the S&P 500 index back to 1927. Performance is calculated as the % change from the last trading day of each year from the last trading day of the previous year.
 
-The Standard and Poor 500 monthly return is sourced from Data Hub (<https://datahub.io/core/s-and-p-500#source-data-construction>). This data is a tidied and CSVd version of the data put together by economist Robert Shiller.(<http://www.econ.yale.edu/~shiller/data.htm>) Monthly dividend and earnings data are computed from the S&P four-quarter totals for the quarter since 1926, with linear interpolation to monthly figures. Dividend and earnings data before 1926 are from Cowles and associates, interpolated from annual data. Stock price data are monthly averages of daily closing prices through January 2000, the last month available as this book goes to press. The CPI-U (Consumer Price Index-All Urban Consumers) published by the U.S. Bureau of Labor Statistics begins in 1913; for years before 1913 1 spliced to the CPI Warren and Pearson's price index, by multiplying it by the ratio of the indexes in January 1913. December 1999 and January 2000 values for the CPI-U are extrapolated.
+The Standard and Poor 500 monthly return was originally compiled by Shiller (2005) and later cleaned and put into a .csv available to download on DataHub. Monthly dividend and earnings data are computed from the S&P four-quarter totals for the quarter since 1926, with linear interpolation to monthly figures. Dividend and earnings data before 1926 are from Cowles and associates, interpolated from annual data. Stock price data are monthly averages of daily closing prices through January 2000, the last month available as this book goes to press. The CPI-U (Consumer Price Index-All Urban Consumers) published by the U.S. Bureau of Labor Statistics begins in 1913; for years before 1913 1 spliced to the CPI Warren and Pearson's price index, by multiplying it by the ratio of the indexes in January 1913. December 1999 and January 2000 values for the CPI-U are extrapolated.
 
-The Congress trading data is sourced from kaggle, user Shabba Rank (<https://www.kaggle.com/datasets/shabbarank/congressional-trading-inception-to-march-23?select=Copy+of+congress-trading-all+%283%29.csv>), which in turn sources it from Quiver Quantitative (<https://www.quiverquant.com/congresstrading/>). The excess return for each recorded trade is calculated as the difference between the security's Price Change Since Trade and the SPY 's change since the trade.
+The Congress trading data cones from Quiver Quantitative (2025). It was cleaned and put into a .csv format available for download on Kaggle by user Shabba Rank. The excess return for each recorded trade is calculated as the difference between the security's Price Change Since Trade and the SPY 's change since the trade.
 
 These are things that are usually included in the metadata of the data set. For your project, you need to provide us with the information from your metadata that we need to understand your data set of choice.
 
@@ -402,6 +400,8 @@ scale_fill_gradient2(low = "red", mid = "white", high = "green", midpoint = 0,
   theme_minimal()
 ```
 
+Grouping the congress members by state then calculating how many times over each state out-performed (under-performed) the market rate helps visualize if abnormal returns are spatially concentrated or if the trend is more widespread. A nationwide abnormal return pattern could indicate that congress members are capable of systematically achieving abnoraml returns which would point to insider trading.
+
 ## 3.5 Visualize sub-population variation
 
 What is the number of congress members that beat the market from 2012 to 2024?
@@ -425,7 +425,6 @@ Plotting the number of congress members with higher return rates than the market
 
 ## 3.6 Event analysis
 
-Analyze the relationship between two variables.
 
 ```{r analysis}
 ########################## covid 19 Zoom in line plot
@@ -460,7 +459,8 @@ reshaped_monthly_returns[165:206,] |>
 #
 ```
 
-This plot compares
+This plot focuses on a time interval surrounding the Covid 19 pandemic event. It is characterized by a local minimum in the market return rate. If congress members had prior knowledge of legislation and how it would affect the market leaing up to the Covid 19 pandemic event, we would observe an upward trend in the returns on investments made by congress members. 
+
 
 # Part 4 - Discussion
 
@@ -472,7 +472,7 @@ Our investigation into potential insider trading among U.S. Congress members aim
 
 ## 5.1 Github repository link
 
-Provide the link to your PUBLIC repository here: ...
+https://github.com/giovannivittorio/Programming_Project_Group4-4-
 
 ## 5.2 Reference list
 
