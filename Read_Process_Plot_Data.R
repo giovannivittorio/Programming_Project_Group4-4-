@@ -32,13 +32,14 @@ library(zoo)
 
 
 
+
 ################################
 ###upload data as data frame####
 ################################
 
 senators_full_data<-read.csv("data/Copyofcongress-trading-all.csv")
 senators_control_data <- read.csv("data/Copyofcongress-trading-all.csv")
-
+congresstrades <- read.csv("data/Copyofcongress-trading-all.csv")
 #### eliminate duplicate rows
 
 senators_full_data <- distinct(senators_full_data)

@@ -237,9 +237,11 @@ This plots the congress members' monthly weighted average excess return (net ret
  
 ```{r line_plot_prep, include=FALSE}
 ## create dataframe with only date and return, remove excess columns
+
 sp_500_monthly_returns <- subset(sp_500_monthly_full_data, select = 
                                    c(Date, sp_500_monthly_return))
 ## make sure date column is date object
+
 sp_500_monthly_returns <- sp_500_monthly_returns |>
   mutate(Date =as.Date(Date))
 
@@ -373,7 +375,7 @@ scale_fill_gradient2(low = "red", mid = "white", high = "green", midpoint = 0,
   theme_minimal()
 ```
 
-Grouping the congress members by state then calculating how many times over each state out-performed (under-performed) the market rate helps visualize if abnormal returns are spatially concentrated or if the trend is more widespread. A nationwide abnormal return pattern could indicate that congress members are capable of systematically achieving abnoraml returns which would point to insider trading.
+Grouping the congress members by state then calculating the factor by which each state out-performed (under-performed) the market rate helps visualize if abnormal returns are spatially concentrated or if the trend is more widespread. A nationwide abnormal return pattern could indicate that congress members are capable of systematically achieving abnormal returns, in turn pointing to insider trading.
 
 ## 3.5 Visualize sub-population variation
 
